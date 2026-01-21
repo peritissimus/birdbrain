@@ -36,6 +36,9 @@ class SqlAlchemyRepository(BookmarkRepository):
             classification_status=model.classification_status or "pending",
             classification_retry_count=model.classification_retry_count or 0,
             classification_model=model.classification_model,
+            is_truncated=model.is_truncated or False,
+            is_quote_missing=model.is_quote_missing or False,
+            needs_hydration=model.needs_hydration or False,
         )
 
     def save_account(self, account: Account) -> Account:
@@ -92,6 +95,9 @@ class SqlAlchemyRepository(BookmarkRepository):
         model.quoted_status_id = tweet.quoted_status_id
         model.account_id = tweet.account_id
         model.classification_status = tweet.classification_status
+        model.is_truncated = tweet.is_truncated
+        model.is_quote_missing = tweet.is_quote_missing
+        model.needs_hydration = tweet.needs_hydration
 
         self.db.commit()
         self.db.refresh(model)

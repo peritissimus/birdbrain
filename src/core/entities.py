@@ -34,3 +34,8 @@ class Tweet:
     classification_status: str = "pending"
     classification_retry_count: int = 0
     classification_model: Optional[str] = None
+
+    # Sync/Hydration tracking
+    is_truncated: bool = False
+    is_quote_missing: bool = False
+    needs_hydration: bool = False

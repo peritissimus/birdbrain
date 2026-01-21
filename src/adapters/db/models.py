@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 from src.infrastructure.database import Base
 
@@ -37,6 +37,11 @@ class TweetModel(Base):
     classification_status = Column(String, default="pending", index=True, nullable=False)
     classification_retry_count = Column(Integer, default=0)
     classification_model = Column(String, nullable=True)
+
+    # Sync/Hydration tracking
+    is_truncated = Column(Boolean, default=False, nullable=False)
+    is_quote_missing = Column(Boolean, default=False, nullable=False)
+    needs_hydration = Column(Boolean, default=False, index=True, nullable=False)
 
     account = relationship("AccountModel", back_populates="bookmarks")
     quoted_tweet = relationship("TweetModel", remote_side=[rest_id])

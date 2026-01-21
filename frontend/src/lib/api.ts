@@ -1,6 +1,6 @@
 import type { BookmarksResponse, TopicsResponse, Stats } from './types';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://localhost:8787';
 
 export async function fetchBookmarks(
 	limit = 50,

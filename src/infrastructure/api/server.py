@@ -353,6 +353,104 @@ async def get_bookmarks_by_topic(
         db.close()
 
 
+@app.get("/api/tweets/incomplete")
+async def get_incomplete_tweets():
+    """Get list of tweet IDs that need hydration (truncated or missing quotes)."""
+    db = SessionLocal()
+    try:
+        tweets = (
+            db.query(TweetModel)
+            .filter(TweetModel.needs_hydration == True)
+            .all()
+        )
+        return {
+            "tweets": [
+                {
+                    "rest_id": t.rest_id,
+                    "author_handle": t.author_handle,
+                    "is_truncated": t.is_truncated,
+                    "is_quote_missing": t.is_quote_missing,
+                    "quoted_status_id": t.quoted_status_id,
+                }
+                for t in tweets
+            ],
+            "count": len(tweets),
+        }
+    finally:
+        db.close()
+
+
+@app.post("/api/tweets/{rest_id}/hydrate")
+async def hydrate_tweet(rest_id: str, payload: Dict[str, Any]):
+    """Update a tweet with full data from viewing the tweet page."""
+    from src.adapters.twitter.parser import TwitterParser
+
+    db = SessionLocal()
+    try:
+        tweet_model = db.query(TweetModel).filter(TweetModel.rest_id == rest_id).first()
+        if not tweet_model:
+            return {"status": "error", "message": "Tweet not found"}
+
+        # Parse the TweetDetail response
+        parsed = TwitterParser.parse_tweet_detail(payload)
+        if not parsed:
+            return {"status": "error", "message": "Failed to parse tweet data"}
+
+        # Update fields if we got better data
+        if parsed.text and len(parsed.text) > len(tweet_model.text or ""):
+            tweet_model.text = parsed.text
+            tweet_model.is_truncated = False
+            # Reset classification since text changed
+            tweet_model.classification_status = "pending"
+            tweet_model.topics = None
+            tweet_model.summary = None
+
+        # Update raw_data with new data
+        tweet_model.raw_data = parsed.raw_data
+
+        # Check if we got the quoted tweet
+        if tweet_model.is_quote_missing and parsed.quoted_status_id:
+            quoted_tweet = TwitterParser.extract_quoted_tweet(payload)
+            if quoted_tweet:
+                existing_quoted = db.query(TweetModel).filter(
+                    TweetModel.rest_id == quoted_tweet.rest_id
+                ).first()
+                if not existing_quoted:
+                    quoted_model = TweetModel(
+                        rest_id=quoted_tweet.rest_id,
+                        text=quoted_tweet.text,
+                        author_handle=quoted_tweet.author_handle,
+                        author_name=quoted_tweet.author_name,
+                        created_at=quoted_tweet.created_at,
+                        media_blobs=quoted_tweet.media_blobs,
+                        raw_data=quoted_tweet.raw_data,
+                        classification_status="pending",
+                    )
+                    db.add(quoted_model)
+                tweet_model.is_quote_missing = False
+
+        # Update needs_hydration flag
+        tweet_model.needs_hydration = tweet_model.is_truncated or tweet_model.is_quote_missing
+
+        db.commit()
+
+        # Trigger classification if needed
+        settings = get_settings()
+        if settings.groq_api_key and tweet_model.classification_status == "pending":
+            from src.infrastructure.tasks import classify_tweets_task
+            classify_tweets_task.delay(1)
+
+        return {
+            "status": "success",
+            "rest_id": rest_id,
+            "is_truncated": tweet_model.is_truncated,
+            "is_quote_missing": tweet_model.is_quote_missing,
+            "needs_hydration": tweet_model.needs_hydration,
+        }
+    finally:
+        db.close()
+
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "sqlite:///birdbrain.db"
-    server_port: int = 8000
+    server_port: int = 8787
     server_host: str = "127.0.0.1"
     auth_dir: str = os.path.join(os.getcwd(), "auth_storage")
 
