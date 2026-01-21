@@ -12,10 +12,6 @@ A local bookmark archive that uses a Chrome Extension to capture your Twitter/X 
    ```bash
    uv sync
    ```
-3. Install Camoufox/Playwright browsers:
-   ```bash
-   uv run camoufox fetch
-   ```
 
 ## Usage (Chrome Extension Default)
 

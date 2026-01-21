@@ -3,6 +3,7 @@ from rich.console import Console
 from rich.table import Table
 from src.infrastructure.database import init_db, get_db
 from src.adapters.db.repository import SqlAlchemyRepository
+from src.infrastructure.config import get_settings
 import uvicorn
 from src.infrastructure.api.server import app as api_app
 
@@ -86,11 +87,13 @@ def list(username: str):
 
 
 @app.command()
-def serve(port: int = 8000):
+def serve(port: int = None):
     """Start the API server for Chrome Extension sync."""
+    settings = get_settings()
+    port = port or settings.server_port
     console.print(f"[bold green]Starting API server on port {port}...[/bold green]")
     console.print("Install the extension in 'chrome_extension/' folder to sync.")
-    uvicorn.run(api_app, host="127.0.0.1", port=port)
+    uvicorn.run(api_app, host=settings.server_host, port=port)
 
 
 if __name__ == "__main__":
