@@ -2,6 +2,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from src.core.entities import Account, Tweet
 from src.core.interfaces import BookmarkRepository
+from src.core.value_objects import ClassificationResult
 from src.adapters.db.models import AccountModel, TweetModel
 
 
@@ -29,6 +30,12 @@ class SqlAlchemyRepository(BookmarkRepository):
             raw_data=model.raw_data,
             quoted_status_id=model.quoted_status_id,
             account_id=model.account_id,
+            topics=model.topics,
+            summary=model.summary,
+            classified_at=model.classified_at,
+            classification_status=model.classification_status or "pending",
+            classification_retry_count=model.classification_retry_count or 0,
+            classification_model=model.classification_model,
         )
 
     def save_account(self, account: Account) -> Account:
@@ -41,7 +48,6 @@ class SqlAlchemyRepository(BookmarkRepository):
             model = AccountModel(username=account.username)
             self.db.add(model)
 
-        # Update fields
         if account.user_id:
             model.user_id = account.user_id
         if account.auth_file_path:
@@ -68,7 +74,6 @@ class SqlAlchemyRepository(BookmarkRepository):
         return [self._to_account_entity(m) for m in models]
 
     def save_tweet(self, tweet: Tweet) -> Tweet:
-        # Check if exists
         model = (
             self.db.query(TweetModel)
             .filter(TweetModel.rest_id == tweet.rest_id)
@@ -78,7 +83,6 @@ class SqlAlchemyRepository(BookmarkRepository):
             model = TweetModel(rest_id=tweet.rest_id)
             self.db.add(model)
 
-        # Update fields
         model.text = tweet.text
         model.author_handle = tweet.author_handle
         model.author_name = tweet.author_name
@@ -87,6 +91,7 @@ class SqlAlchemyRepository(BookmarkRepository):
         model.raw_data = tweet.raw_data
         model.quoted_status_id = tweet.quoted_status_id
         model.account_id = tweet.account_id
+        model.classification_status = tweet.classification_status
 
         self.db.commit()
         self.db.refresh(model)
@@ -103,3 +108,41 @@ class SqlAlchemyRepository(BookmarkRepository):
             self.db.query(TweetModel).filter(TweetModel.account_id == account_id).all()
         )
         return [self._to_tweet_entity(m) for m in models]
+
+    def update_tweet_classification(
+        self, rest_id: str, result: ClassificationResult
+    ) -> Tweet:
+        """Update a tweet with classification results."""
+        model = self.db.query(TweetModel).filter(TweetModel.rest_id == rest_id).first()
+        if not model:
+            raise ValueError(f"Tweet not found: {rest_id}")
+
+        model.topics = result.topics
+        model.summary = result.summary
+        model.classified_at = result.classified_at
+        model.classification_status = "completed"
+        model.classification_model = result.model_used
+
+        self.db.commit()
+        self.db.refresh(model)
+        return self._to_tweet_entity(model)
+
+    def get_unclassified_tweets(self, limit: int = 50) -> List[Tweet]:
+        """Get tweets that haven't been classified yet."""
+        models = (
+            self.db.query(TweetModel)
+            .filter(TweetModel.classification_status == "pending")
+            .limit(limit)
+            .all()
+        )
+        return [self._to_tweet_entity(m) for m in models]
+
+    def mark_classification_failed(
+        self, rest_id: str, error_type: str, retry_count: int
+    ) -> None:
+        """Mark a tweet as having failed classification."""
+        model = self.db.query(TweetModel).filter(TweetModel.rest_id == rest_id).first()
+        if model:
+            model.classification_status = "failed"
+            model.classification_retry_count = retry_count
+            self.db.commit()

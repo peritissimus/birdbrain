@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from src.infrastructure.database import Base
-from datetime import datetime
 
 
 class AccountModel(Base):
@@ -13,7 +12,6 @@ class AccountModel(Base):
     auth_file_path = Column(String, nullable=True)
     last_synced_at = Column(DateTime, nullable=True)
 
-    # Relationship to bookmarks (tweets this account saved)
     bookmarks = relationship("TweetModel", back_populates="account")
 
 
@@ -26,12 +24,19 @@ class TweetModel(Base):
     author_handle = Column(String, nullable=True)
     author_name = Column(String, nullable=True)
     created_at = Column(DateTime, nullable=True)
-    media_blobs = Column(Text, nullable=True)  # JSON string
-    raw_data = Column(Text, nullable=True)  # JSON string
+    media_blobs = Column(Text, nullable=True)
+    raw_data = Column(Text, nullable=True)
 
     quoted_status_id = Column(String, ForeignKey("tweets.rest_id"), nullable=True)
     account_id = Column(Integer, ForeignKey("accounts.id"), nullable=True)
 
-    # Relationships
+    # AI Classification fields
+    topics = Column(JSON, nullable=True)
+    summary = Column(Text, nullable=True)
+    classified_at = Column(DateTime, nullable=True)
+    classification_status = Column(String, default="pending", index=True, nullable=False)
+    classification_retry_count = Column(Integer, default=0)
+    classification_model = Column(String, nullable=True)
+
     account = relationship("AccountModel", back_populates="bookmarks")
     quoted_tweet = relationship("TweetModel", remote_side=[rest_id])

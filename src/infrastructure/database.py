@@ -18,4 +18,7 @@ def get_db():
 
 
 def init_db():
+    # Import models to register them with Base metadata
+    from src.adapters.db import models  # noqa: F401
+
     Base.metadata.create_all(bind=engine)

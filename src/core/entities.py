@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, List
 
@@ -19,10 +19,18 @@ class Tweet:
     author_handle: str
     author_name: str
     created_at: datetime
-    media_blobs: Optional[str] = None  # JSON string of media URLs
-    raw_data: Optional[str] = None  # Full JSON response
-    quoted_status_id: Optional[str] = None  # ID of the quoted tweet
+    media_blobs: Optional[str] = None
+    raw_data: Optional[str] = None
+    quoted_status_id: Optional[str] = None
 
     # Relationships
     quoted_tweet: Optional["Tweet"] = None
-    account_id: Optional[int] = None  # The account that bookmarked this
+    account_id: Optional[int] = None
+
+    # AI Classification fields
+    topics: Optional[List[str]] = field(default=None)
+    summary: Optional[str] = None
+    classified_at: Optional[datetime] = None
+    classification_status: str = "pending"
+    classification_retry_count: int = 0
+    classification_model: Optional[str] = None
