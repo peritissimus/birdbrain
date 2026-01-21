@@ -1,10 +1,10 @@
 # Birdbrain
 
-A local Twitter/X bookmark archiver with AI-powered classification. Uses a Chrome Extension to capture bookmarks and stores them in SQLite with automatic topic categorization and summaries.
+A local Twitter/X bookmark archiver with AI-powered classification. Uses a browser extension to capture bookmarks and stores them in SQLite with automatic topic categorization and summaries.
 
 ## Features
 
-- **Bookmark Capture** - Chrome extension intercepts Twitter's GraphQL responses as you scroll
+- **Bookmark Capture** - Browser extension intercepts Twitter's GraphQL responses as you scroll
 - **AI Classification** - Automatic topic tagging and summaries using Groq (Llama 3.3 70B)
 - **Smart Hydration** - Detects truncated tweets and missing quotes, auto-completes when you view them
 - **Modern Frontend** - Twitter-like dark UI built with SvelteKit
@@ -51,12 +51,18 @@ make serve
 make frontend
 ```
 
-### 4. Install Chrome Extension
+### 4. Install Browser Extension
 
+**Chrome**
 1. Open Chrome and navigate to `chrome://extensions/`
 2. Enable **Developer mode** (toggle in top-right corner)
 3. Click **Load unpacked**
 4. Select the `chrome_extension` folder
+
+**Firefox**
+1. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on...**
+3. Select `firefox_extension/manifest.json`
 
 ### 5. Sync Your Bookmarks
 
@@ -87,7 +93,8 @@ birdbrain/
 │       ├── database.py    # SQLAlchemy engine
 │       ├── celery_app.py  # Celery configuration
 │       └── tasks.py       # Background tasks
-├── chrome_extension/      # Browser extension
+├── chrome_extension/      # Chrome extension (MV3)
+├── firefox_extension/     # Firefox extension (MV3)
 │   ├── manifest.json
 │   ├── background.js      # Syncs incomplete tweets list
 │   ├── hook.js            # Intercepts GraphQL (MAIN world)
@@ -161,7 +168,7 @@ All settings can be configured via environment variables or `.env` file:
 - **Frontend**: SvelteKit 5, TypeScript
 - **Database**: SQLite
 - **Queue**: Redis + Celery
-- **Extension**: Chrome Manifest V3
+- **Extension**: Chrome + Firefox (Manifest V3)
 
 ## License
 

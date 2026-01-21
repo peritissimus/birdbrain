@@ -26,34 +26,34 @@ def init():
 
 @app.command()
 def login(username: str):
-    """Deprecated. Use Chrome extension sync."""
+    """Deprecated. Use browser extension sync."""
     console.print(
-        "[yellow]Login via CLI is disabled. Use the Chrome extension flow instead.[/yellow]"
+        "[yellow]Login via CLI is disabled. Use the browser extension flow instead.[/yellow]"
     )
     console.print("Start the API server with: uv run main.py serve")
-    console.print("Then sync bookmarks from Chrome.")
+    console.print("Then sync bookmarks from the extension.")
     return
 
 
 @app.command()
 def sync(username: str):
-    """Deprecated. Use Chrome extension sync."""
+    """Deprecated. Use browser extension sync."""
     console.print(
-        "[yellow]CLI sync is disabled. Use the Chrome extension flow instead.[/yellow]"
+        "[yellow]CLI sync is disabled. Use the browser extension flow instead.[/yellow]"
     )
     console.print("Start the API server with: uv run main.py serve")
-    console.print("Then sync bookmarks from Chrome.")
+    console.print("Then sync bookmarks from the extension.")
     return
 
 
 @app.command()
 def import_curl(curl_command: str):
-    """Deprecated. Use Chrome extension sync."""
+    """Deprecated. Use browser extension sync."""
     console.print(
-        "[yellow]cURL import is disabled. Use the Chrome extension flow instead.[/yellow]"
+        "[yellow]cURL import is disabled. Use the browser extension flow instead.[/yellow]"
     )
     console.print("Start the API server with: uv run main.py serve")
-    console.print("Then sync bookmarks from Chrome.")
+    console.print("Then sync bookmarks from the extension.")
     return
 
 
@@ -177,11 +177,11 @@ def stats():
 
 @app.command()
 def serve(port: int = None):
-    """Start the API server for Chrome Extension sync."""
+    """Start the API server for browser extension sync."""
     settings = get_settings()
     port = port or settings.server_port
     console.print(f"[bold green]Starting API server on port {port}...[/bold green]")
-    console.print("Install the extension in 'chrome_extension/' folder to sync.")
+    console.print("Install the extension from 'chrome_extension/' (Chrome) or 'firefox_extension/' (Firefox) to sync.")
 
     if settings.groq_api_key:
         console.print(f"[cyan]AI Classification: Enabled (model: {settings.groq_model})[/cyan]")

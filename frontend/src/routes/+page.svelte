@@ -160,7 +160,7 @@
 						/>
 					</svg>
 					<h3>No bookmarks yet</h3>
-					<p>Use the Chrome extension to sync your Twitter bookmarks</p>
+					<p>Use the browser extension to sync your Twitter bookmarks</p>
 				</div>
 			{:else}
 				{#each bookmarks as bookmark (bookmark.id)}

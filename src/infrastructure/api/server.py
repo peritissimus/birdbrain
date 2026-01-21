@@ -21,7 +21,7 @@ app.add_middleware(
 
 @app.post("/api/bookmarks/ingest")
 async def ingest_bookmarks(payload: Dict[str, Any]):
-    """Receives raw GraphQL response from the Chrome Extension."""
+    """Receives raw GraphQL response from the browser extension."""
     db = next(get_db())
     repo = SqlAlchemyRepository(db)
 
