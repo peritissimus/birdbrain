@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "celery[redis]>=5.4.0",
     "fastapi>=0.128.0",
+    "httpx>=0.28.0",
     "pydantic-settings>=2.0.0",
     "rich>=14.2.0",
     "sqlalchemy>=2.0.45",
